@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حلويات الملكي | متجر احترافي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #c5a059;
+            --dark-brown: #3d2b1f;
+            --accent: #e67e22;
+            --soft-white: #fdfaf6;
+            --danger: #e74c3c;
+            --success: #27ae60;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--soft-white);
+            margin: 0;
+            color: var(--dark-brown);
+            padding-bottom: 80px;
+        }
+
+        /* Header */
+        header {
+            background: white;
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .logo { font-size: 1.5rem; font-weight: 700; color: var(--dark-brown); text-decoration: none; }
+        .logo span { color: var(--gold); }
+        .cart-trigger {
+            background: var(--dark-brown);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: bold;
+        }
+
+        /* Products */
+        .container { padding: 2rem 5%; max-width: 1200px; margin: auto; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+        .card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            transition: 0.3s;
+            text-align: center;
+        }
+        .card-img {
+            width: 100%;
+            height: 200px;
+            background-size: cover;
+            background-position: center;
+        }
+        .card-content { padding: 1.5rem; }
+
+        /* Quantity */
+        .qty-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin: 1rem 0;
+        }
+        .btn-step {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 1px solid var(--gold);
+            background: white;
+            color: var(--gold);
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .add-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            background: var(--dark-brown);
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        /* Cart Panel */
+        #cart-panel {
+            position: fixed;
+            left: -100%;
+            top: 0;
+            width: 350px;
+            height: 100%;
+            background: white;
+            box-shadow: 5px 0 20px rgba(0,0,0,0.2);
+            transition: 0.4s;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+        }
+        #cart-panel.open { left: 0; }
+
+        .cart-header {
+            padding: 20px;
+            background: #f8f9fa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            font-weight: bold;
+        }
+        .cart-items {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #fff;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            border: 1px solid #eee;
+        }
+        .item-info { flex-grow: 1; }
+        .item-price { font-weight: bold; color: var(--accent); margin: 0 10px; }
+        .delete-btn {
+            background: none;
+            border: none;
+            color: var(--danger);
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 5px;
+        }
+        .delete-btn:hover { transform: scale(1.1); }
+
+        .cart-footer {
+            padding: 20px;
+            border-top: 1px solid #eee;
+            background: #f9f9f9;
+        }
+        .checkout-btn {
+            width: 100%;
+            padding: 15px;
+            background: var(--success);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* Overlay & Toast */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            z-index: 1500;
+        }
+        .overlay.active { display: block; }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--dark-brown);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 8px;
+            transform: translateY(200%);
+            transition: 0.4s;
+            z-index: 3000;
+            font-weight: bold;
+        }
+        .toast.show { transform: translateY(0); }
+
+        .empty-cart {
+            text-align: center;
+            color: #999;
+            padding: 40px 20px;
+            font-style: italic;
+        }
+        .empty-cart i { font-size: 3rem; opacity: 0.3; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="overlay" id="overlay" onclick="toggleCart()"></div>
+
+<header>
+    <a href="#" class="logo">حلويات <span>الملكي</span></a>
+    <div class="cart-trigger" onclick="toggleCart()">
+        🛒 السلة (<span id="cart-count">0</span>)
+    </div>
+</header>
+
+<div id="cart-panel">
+    <div class="cart-header">
+        <strong>سلة المشتريات</strong>
+        <span style="cursor:pointer; color:#e74c3c" onclick="toggleCart()">✕</span>
+    </div>
+    
+    <div class="cart-items" id="cart-items-list">
+        <div class="empty-cart">
+            <i>🛒</i>
+            <p>السلة فارغة</p>
+        </div>
+    </div>
+
+    <div class="cart-footer">
+        <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-weight:bold; font-size:1.2rem;">
+            <span>الإجمالي:</span>
+            <span><span id="total-price">0</span> درهم</span>
+        </div>
+        <button class="checkout-btn" onclick="sendOrder()">تأكيد الطلب (واتساب)</button>
+    </div>
+</div>
+
+<div id="toast" class="toast">تمت الإضافة بنجاح!</div>
+
+<div class="container">
+    <div class="grid">
+        <div class="card">
+            <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1514517604298-cf80e0fb7f1e?w=400&auto=format');"></div>
+            <div class="card-content">
+                <h3>بقلاوة ملكية</h3>
+                <p style="color:var(--accent); margin: 8px 0;">150 درهم / كجم</p>
+                <div class="qty-controls">
+                    <button class="btn-step" onclick="changeQty('q1', -0.5)">-</button>
+                    <span id="q1">0.5</span>
+                    <button class="btn-step" onclick="changeQty('q1', 0.5)">+</button>
+                </div>
+                <button class="add-btn" onclick="addToCart('بقلاوة ملكية', 150, 'q1')">أضف للسلة</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1558326567-98ae2405596b?w=400&auto=format');"></div>
+            <div class="card-content">
+                <h3>ماكرون فاخر</h3>
+                <p style="color:var(--accent); margin: 8px 0;">200 درهم / كجم</p>
+                <div class="qty-controls">
+                    <button class="btn-step" onclick="changeQty('q2', -0.5)">-</button>
+                    <span id="q2">0.5</span>
+                    <button class="btn-step" onclick="changeQty('q2', 0.5)">+</button>
+                </div>
+                <button class="add-btn" onclick="addToCart('ماكرون فاخر', 200, 'q2')">أضف للسلة</button>
+            </div>
+        </div>
+
+        <!-- يمكنك إضافة المزيد من المنتجات هنا لاحقًا -->
+    </div>
+</div>
+
+<script>
+    // ⚙️ ضع رقم واتسابك الفعلي هنا (بدون +، مثال: 212612345678)
+    const WHATSAPP_NUMBER = "212600000000";
+
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+    function changeQty(id, val) {
+        let el = document.getElementById(id);
+        let current = parseFloat(el.innerText);
+        if (current + val >= 0.5) {
+            el.innerText = (current + val).toFixed(1);
+        }
+    }
+
+    function toggleCart() {
+        document.getElementById('cart-panel').classList.toggle('open');
+        document.getElementById('overlay').classList.toggle('active');
+    }
+
+    function addToCart(name, price, qtyId) {
+        let qty = parseFloat(document.getElementById(qtyId).innerText);
+        let id = Date.now();
+        cart.push({ id, name, qty, price, subtotal: price * qty });
+        saveCart();
+        updateUI();
+        showToast(`تمت إضافة ${qty} كجم من ${name}`);
+        setTimeout(toggleCart, 600);
+    }
+
+    function removeFromCart(id) {
+        cart = cart.filter(item => item.id !== id);
+        saveCart();
+        updateUI();
+    }
+
+    function saveCart() {
+        localStorage.setItem('cart', JSON.stringify(cart));
+    }
+
+    function updateUI() {
+        const list = document.getElementById('cart-items-list');
+        const count = document.getElementById('cart-count');
+        const total = document.getElementById('total-price');
+
+        count.innerText = cart.length;
+        
+        if (cart.length === 0) {
+            list.innerHTML = '<div class="empty-cart"><i>🛒</i><p>السلة فارغة</p></div>';
+            total.innerText = "0";
+            return;
+        }
+
+        let totalSum = 0;
+        list.innerHTML = cart.map(item => {
+            totalSum += item.subtotal;
+            return `
+                <div class="cart-item">
+                    <div class="item-info">
+                        <strong>${item.name}</strong><br>
+                        <small>${item.qty} كجم</small>
+                    </div>
+                    <span class="item-price">${item.subtotal.toFixed(2)}</span>
+                    <button class="delete-btn" onclick="removeFromCart(${item.id})" title="حذف">🗑️</button>
+                </div>
+            `;
+        }).join('');
+        
+        total.innerText = totalSum.toFixed(2);
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.innerText = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    function sendOrder() {
+        if (cart.length === 0) {
+            showToast("السلة فارغة!");
+            return;
+        }
+
+        let clientName = prompt("أدخل اسمك (اختياري):") || "";
+        let msg = clientName ? `طلب من ${clientName}:\n` : "طلب جديد:\n";
+        msg += cart.map(i => `- ${i.name}: ${i.qty} كجم`).join('\n');
+        msg += `\n\nالإجمالي: ${document.getElementById('total-price').innerText} درهم`;
+
+        window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`);
+    }
+
+    // تحميل السلة عند فتح الصفحة
+    updateUI();
+</script>
+
+</body>
+</html>
